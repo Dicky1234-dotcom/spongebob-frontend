@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#0a0e1a">
+    <meta name="description" content="Web3 Testnet Automation Bot - Farm testnets automatically">
+    
+    <title>SpongeBob</title>
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/png" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/icon-512.png">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Loading Screen -->
+        <div id="loading-screen" class="loading-screen">
+            <div class="cyber-loader"></div>
+            <p>INITIALIZING SYSTEM...</p>
+        </div>
+
+        <!-- Main App Container -->
+        <div id="main-app" class="hidden">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-content">
+                    <h1 class="logo">
+                        <span class="glitch" data-text="SPONGEBOB">SPONGEBOB</span>
+                        <span class="subtitle">TESTNET BOT</span>
+                    </h1>
+                    <div class="header-actions">
+                        <button id="theme-toggle" class="icon-btn" title="Toggle Theme">
+                            <span class="icon">🌓</span>
+                        </button>
+                        <button id="refresh-testnets" class="icon-btn" title="Refresh Testnets">
+                            <span class="icon">🔄</span>
+                        </button>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Navigation -->
+            <nav class="nav-tabs">
+                <button class="nav-tab active" data-tab="dashboard">Dashboard</button>
+                <button class="nav-tab" data-tab="wallets">Wallets</button>
+                <button class="nav-tab" data-tab="testnets">Testnets</button>
+                <button class="nav-tab" data-tab="automation">Automation</button>
+                <button class="nav-tab" data-tab="settings">Settings</button>
+            </nav>
+
+            <!-- Tab Content -->
+            <main class="content">
+                <!-- Dashboard Tab -->
+                <div id="dashboard-tab" class="tab-content active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">💼</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Total Wallets</div>
+                                <div class="stat-value" id="total-wallets">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🎯</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Active Testnets</div>
+                                <div class="stat-value" id="active-testnets">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Completed</div>
+                                <div class="stat-value" id="completed-tasks">0</div>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⚡</div>
+                            <div class="stat-info">
+                                <div class="stat-label">Running</div>
+                                <div class="stat-value status-running" id="bot-status">IDLE</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="activity-section">
+                        <h2 class="section-title">Recent Activity</h2>
+                        <div id="activity-log" class="activity-log">
+                            <div class="activity-item">
+                                <span class="activity-time">--:--</span>
+                                <span class="activity-text">System ready. Start by generating wallets.</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wallets Tab -->
+                <div id="wallets-tab" class="tab-content">
+                    <div class="section-header">
+                        <h2 class="section-title">Wallet Management</h2>
+                        <button id="export-wallets" class="btn btn-secondary">Export</button>
+                    </div>
+
+                    <div class="wallet-generator">
+                        <div class="form-group">
+                            <label>Chain Type</label>
+                            <select id="wallet-chain" class="input">
+                                <option value="evm">EVM (Ethereum, Polygon, etc.)</option>
+                                <option value="solana">Solana</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Number of Wallets (Max 20,000)</label>
+                            <input type="number" id="wallet-count" class="input" min="1" max="20000" value="10">
+                        </div>
+                        <button id="generate-wallets" class="btn btn-primary">Generate Wallets</button>
+                        <div id="wallet-progress" class="progress-bar hidden">
+                            <div class="progress-fill"></div>
+                            <span class="progress-text">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="wallet-actions">
+                        <button id="fund-forward" class="btn btn-action">🔼 Fund Forward</button>
+                        <button id="fund-reverse" class="btn btn-action">🔽 Fund Reverse</button>
+                        <button id="delete-wallets" class="btn btn-danger">🗑️ Delete All</button>
+                    </div>
+
+                    <div class="wallet-list-section">
+                        <h3 class="subsection-title">Wallets (<span id="wallet-count-display">0</span>)</h3>
+                        <div id="wallet-list" class="wallet-list">
+                            <!-- Wallets will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Testnets Tab -->
+                <div id="testnets-tab" class="tab-content">
+                    <div class="section-header">
+                        <h2 class="section-title">Available Testnets</h2>
+                        <button id="add-custom-testnet" class="btn btn-secondary">+ Add Custom</button>
+                    </div>
+
+                    <div class="filter-bar">
+                        <input type="text" id="testnet-search" class="input" placeholder="Search testnets...">
+                        <select id="chain-filter" class="input">
+                            <option value="all">All Chains</option>
+                            <option value="ethereum">Ethereum</option>
+                            <option value="polygon">Polygon</option>
+                            <option value="arbitrum">Arbitrum</option>
+                            <option value="optimism">Optimism</option>
+                            <option value="base">Base</option>
+                            <option value="solana">Solana</option>
+                        </select>
+                    </div>
+
+                    <div id="testnet-list" class="testnet-list">
+                        <!-- Testnets will be rendered here -->
+                    </div>
+                </div>
+
+                <!-- Automation Tab -->
+                <div id="automation-tab" class="tab-content">
+                    <div class="section-header">
+                        <h2 class="section-title">Automation Control</h2>
+                    </div>
+
+                    <div class="automation-controls">
+                        <div class="form-group">
+                            <label>Mode</label>
+                            <select id="automation-mode" class="input">
+                                <option value="all">All Testnets</option>
+                                <option value="new">New Testnets Only</option>
+                                <option value="selected">Selected Testnets</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Delay Between Wallets (seconds)</label>
+                            <input type="number" id="wallet-delay" class="input" min="1" max="300" value="5">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Delay Between Testnets (seconds)</label>
+                            <input type="number" id="testnet-delay" class="input" min="1" max="600" value="10">
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" id="randomize-order" checked>
+                                Randomize Execution Order
+                            </label>
+                        </div>
+
+                        <div class="form-group checkbox-group">
+                            <label>
+                                <input type="checkbox" id="randomize-gas" checked>
+                                Randomize Gas Fees
+                            </label>
+                        </div>
+
+                        <button id="start-automation" class="btn btn-primary btn-large">▶️ Start Automation</button>
+                        <button id="stop-automation" class="btn btn-danger btn-large hidden">⏹️ Stop Automation</button>
+                    </div>
+
+                    <div class="automation-status">
+                        <h3 class="subsection-title">Execution Status</h3>
+                        <div id="execution-status" class="execution-status">
+                            <p class="status-idle">Not running. Configure and start automation.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div id="settings-tab" class="tab-content">
+                    <div class="section-header">
+                        <h2 class="section-title">Settings</h2>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3 class="subsection-title">API Configuration</h3>
+                        <div class="form-group">
+                            <label>Backend API URL</label>
+                            <input type="text" id="api-url" class="input" placeholder="https://your-backend.vercel.app">
+                        </div>
+                        <button id="save-api-url" class="btn btn-primary">Save API URL</button>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3 class="subsection-title">RPC Endpoints</h3>
+                        <div id="rpc-list" class="rpc-list">
+                            <!-- RPC endpoints will be rendered here -->
+                        </div>
+                        <button id="add-rpc" class="btn btn-secondary">+ Add RPC</button>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3 class="subsection-title">Data Management</h3>
+                        <button id="export-all" class="btn btn-secondary">Export All Data</button>
+                        <button id="import-data" class="btn btn-secondary">Import Data</button>
+                        <button id="clear-data" class="btn btn-danger">Clear All Data</button>
+                    </div>
+
+                    <div class="settings-section">
+                        <h3 class="subsection-title">About</h3>
+                        <p class="about-text">SpongeBob v1.0.0</p>
+                        <p class="about-text">Automated testnet farming for multiple chains</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+        <!-- Custom Task Modal -->
+        <div id="custom-task-modal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Add Custom Testnet Task</h3>
+                    <button class="modal-close">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label>Paste testnet instructions or link</label>
+                        <textarea id="custom-task-input" class="textarea" rows="10" placeholder="Paste testnet tasks, instructions, or link here..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="parse-custom-task" class="btn btn-primary">Parse & Add</button>
+                    <button class="modal-close btn btn-secondary">Cancel</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div id="toast-container" class="toast-container"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="/src/app.js"></script>
+</body>
+                              </html>
+              
